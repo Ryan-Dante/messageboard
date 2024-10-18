@@ -10,12 +10,34 @@ const runner            = require('./test-runner');
 
 const app = express();
 
+const mongoose = require('mongoose');
+const helmet = require('helmet');
+
 app.use('/public', express.static(process.cwd() + '/public'));
 
 app.use(cors({origin: '*'})); //For FCC testing purposes only
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
+//Security features
+
+//Only allow iFrames from your domains
+app.use(helmet.frameguard({ action: 'sameorigin' }));
+
+//Do not allow DNS prefetching
+app.use(helmet.dnsPrefetchControl());
+
+//Only allow your site to send the referrer for your own pages
+app.use(helmet.referrerPolicy({ policy: 'same-origin' }));
+
+//Connect to the database
+mongoose.connect(process.env.MONGO_URI);
+console.log('Connected to the database');
+
+//Clear the database for testing purposes 
+mongoose.connection.dropDatabase(); 
+console.log('Database cleared');
 
 //Sample front-end
 app.route('/b/:board/')
